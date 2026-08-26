@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  愚公填山 - LoadFolders
+  ===========================================
+  告诉 RimWorld 应该加载哪些目录。
+  默认加载根目录下的 Defs/、Textures/、Assemblies/ 等。
+-->
+<loadFolders>
+  <li IfModActive="brrainz.harmony">/</li>
+</loadFolders>
