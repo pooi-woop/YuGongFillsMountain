@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  愚公填山 (Yu Gong Fills the Mountain) - About.xml
+  作者: PooiWoop
+  适用于 RimWorld 1.6
+
+  灵感来自中国成语"愚公移山"——殖民者可使用"挖掘"(Mining) 工作类型，
+  在指定格子以默认 2 天（可调）的工作量建造"厚岩顶"(overhead mountain roof)。
+-->
+<ModMetaData>
+  <!-- packageId: 必须全小写、无空格、全局唯一。格式: 作者名.mod名 -->
+  <packageId>pooiwoop.yugongfillsmountain</packageId>
+
+  <!-- 显示名称（在 Mod 列表与存档兼容性界面显示） -->
+  <name>愚公填山 (YuGongFillsMountain)</name>
+
+  <!-- 作者名 -->
+  <author>PooiWoop</author>
+
+  <!-- 支持的游戏版本 -->
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+
+  <!-- 必须依赖 Harmony（C# mod 几乎都需要） -->
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+    </li>
+  </modDependencies>
+
+  <!-- Mod 描述（支持多行文本） -->
+  <description>受"愚公移山"启发，殖民者可使用"挖掘"(Mining) 工作类型，以默认 2 天（可在 Mod 设置中调整）的工作量，将指定格子的屋顶变为厚岩顶（overhead mountain）。完成后该标记建筑会自动消失，仅留下厚岩顶。\n\n需要在 Mod 设置中调整工作量倍率，可设为 0.5（1 天）至 4.0（8 天）。</description>
+</ModMetaData>
