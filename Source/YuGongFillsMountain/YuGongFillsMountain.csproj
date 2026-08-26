@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  愚公填山 - C# 项目文件
+  ===========================================
+  用 Visual Studio 2022 或 dotnet CLI 编译:
+    dotnet build -c Release
+  编译后输出 YuGongFillsMountain.dll 到 Assemblies/ 目录。
+
+  注意:
+  - RimWorldPath 属性默认为 e:\steam\steamapps\common\RimWorld
+    如果你的 RimWorld 安装路径不同，请修改此处或用 -p:RimWorldPath=... 覆盖
+  - .NET Framework 4.7.2 (RimWorld 1.6 要求)
+  - 必须引用 Assembly-CSharp.dll 和 UnityEngine*.dll
+  - 必须引用 0Harmony.dll（通常从 Workshop 的 Harmony mod 获取）
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>YuGongFillsMountain</AssemblyName>
+    <RootNamespace>YGFM</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <Configuration>Release</Configuration>
+    <Platforms>AnyCPU</Platforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <!-- 不生成 pdb（避免 RimWorld 加载时的 pdb 文件冲突） -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- RimWorld 安装路径（可在命令行用 -p:RimWorldPath=... 覆盖） -->
+  <PropertyGroup Condition="'$(RimWorldPath)' == ''">
+    <RimWorldPath>e:\steam\steamapps\common\RimWorld</RimWorldPath>
+  </PropertyGroup>
+
+  <!--
+    引用 RimWorld 与 Unity 的核心 DLL。
+    HintPath 指向游戏安装目录下的 Managed 文件夹。
+  -->
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <!--
+      0Harmony.dll 通常来自 Workshop 的 Harmony mod。
+      路径示例: <Steam>/steamapps/workshop/content/294100/2009463077/current/Assemblies/0Harmony.dll
+      请根据你的实际安装修改 HintPath，或安装 NuGet 包 "Lib.Harmony"。
+    -->
+    <Reference Include="0Harmony">
+      <HintPath>$(RimWorldPath)\..\..\workshop\content\294100\2009463077\current\Assemblies\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!--
+    编译后将 DLL 复制到 mod 的 Assemblies 文件夹。
+    .csproj 位于 Source/YuGongFillsMountain/，需要向上两级到 mod 根目录，
+    再进入 Assemblies/ 子目录。
+  -->
+  <Target Name="CopyDllToMod" AfterTargets="Build">
+    <Copy
+      SourceFiles="$(TargetPath)"
+      DestinationFolder="$(MSBuildThisFileDirectory)..\..\Assemblies\"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>
