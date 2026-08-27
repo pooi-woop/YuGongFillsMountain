@@ -48,28 +48,43 @@ namespace YGFM
         }
 
         /// <summary>
+        /// 此 WorkGiver 是否处理蓝图（Blueprint）。
+        /// 设为 true：把蓝图也交给挖掘工人，避免依赖原版 Construction 的"蓝图→框架"步骤。
+        /// </summary>
+        private const string MarkerDefName = "YGFM_ThickRoofBuilder";
+
+        /// <summary>
+        /// 判断一个 Thing 是否我们的标记（蓝图、框架都算）。
+        /// Blueprint 和 Frame 都通过 def.entityDefToBuild 指向目标建筑 ThingDef。
+        /// </summary>
+        private static bool IsOurMarker(Thing t)
+        {
+            if (t is Blueprint || t is Frame)
+            {
+                ThingDef buildDef = t.def.entityDefToBuild as ThingDef;
+                return buildDef != null && buildDef.defName == MarkerDefName;
+            }
+            // 兼容：已生成的标记建筑本身
+            return t.def.defName == MarkerDefName;
+        }
+
+        /// <summary>
         /// 返回此 WorkGiver 在整个地图上所有可能的工作目标。
         /// RimWorld 会遍历这些目标，找到最近的可工作目标分配给殖民者。
+        ///
+        /// 注意：我们同时处理"蓝图(Blueprint)"和"建造框架(Frame)"——
+        /// 蓝图是玩家放置标记后生成的"鬼影"，需要先被转成框架才能真正建造。
+        /// 原版这一"蓝图→框架"步骤由 Construction 工作类型完成；为了让本 mod
+        /// 只依赖"挖掘"工作类型也能完整工作，这里把蓝图也纳入扫描范围。
         /// </summary>
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
-            // 遍历地图上所有"建筑类"实体，筛选出我们的建造框架
-            // 注意：listerThings.ThingsMatching 返回所有匹配 ThingRequest 的 Thing
+            // 遍历地图上所有"建筑类"实体，筛选出我们的标记（蓝图/框架）
             var things = pawn.Map.listerThings.ThingsMatching(ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial));
 
             foreach (Thing t in things)
             {
-                // 关键判断：如果是 Frame（建造框架），并且其 BuildDef 是我们的标记建筑
-                if (t is Frame frame)
-                {
-                    ThingDef buildDef = frame.def.entityDefToBuild as ThingDef;
-                    if (buildDef != null && buildDef.defName == "YGFM_ThickRoofBuilder")
-                    {
-                        yield return t;
-                    }
-                }
-                // 兼容：如果是已生成的标记建筑本身（理论上正常情况下不会发生）
-                else if (t.def.defName == "YGFM_ThickRoofBuilder")
+                if (IsOurMarker(t))
                 {
                     yield return t;
                 }
@@ -79,50 +94,53 @@ namespace YGFM
         /// <summary>
         /// 判断殖民者是否能对此目标执行工作。
         /// 必须满足：
+        ///   - 目标是我们的蓝图/框架
         ///   - 目标未禁止(forbidden)
         ///   - 殖民者能到达
         ///   - 殖民者能预订(reserve)此目标
-        ///   - 还有未完成的建造工作（避免反复触发）
         /// </summary>
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
-            // 只对 Frame 类型有效
-            if (!(t is Frame frame)) return false;
-
-            // 检查 BuildDef 是否是我们的标记建筑
-            ThingDef buildDef = frame.def.entityDefToBuild as ThingDef;
-            if (buildDef == null || buildDef.defName != "YGFM_ThickRoofBuilder") return false;
+            // 只接受我们的蓝图或框架
+            if (!(t is Blueprint || t is Frame)) return false;
+            if (!IsOurMarker(t)) return false;
 
             // 已禁止的目标不能自动工作（除非玩家强制 forced）
-            if (frame.IsForbidden(pawn) && !forced) return false;
+            if (t.IsForbidden(pawn) && !forced) return false;
 
             // 殖民者无法到达此格子 -> 不能工作
-            if (!pawn.CanReach(frame, PathEndMode.Touch, Danger.Deadly)) return false;
+            if (!pawn.CanReach(t, PathEndMode.Touch, Danger.Deadly)) return false;
 
             // 检查是否已被他人预订（避免多个殖民者抢同一个工作）
-            // 1 个名额，预留 -1 表示不限数量
-            if (!pawn.CanReserve(frame, 1, -1, null, forced)) return false;
+            if (!pawn.CanReserve(t, 1, -1, null, forced)) return false;
 
             return true;
         }
 
         /// <summary>
-        /// 返回一个 Job 对象，让殖民者去执行"完成建造框架"的工作。
-        /// 复用原版的 JobDefOf.ConstructFinishFrame（原版"完成建造"作业）。
+        /// 返回一个 Job 对象，让殖民者去执行建造工作。
+        ///   - 目标是"蓝图"：给 PlaceNoCostFrame 作业，把蓝图转成框架；
+        ///   - 目标是"框架"：给 FinishFrame 作业，花大量工作量完成建造。
+        /// 两个 JobDef 都是原版的。
         /// </summary>
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
             // 再次检查（防御性编程）
             if (!HasJobOnThing(pawn, t, forced)) return null;
 
-            Frame frame = (Frame)t;
+            Job job;
+            if (t is Blueprint)
+            {
+                // 把蓝图转成框架（原版 PlaceNoCostFrame 作业）
+                job = JobMaker.MakeJob(JobDefOf.PlaceNoCostFrame, t);
+            }
+            else
+            {
+                // 完成建造框架（原版 FinishFrame 作业，真正的"填山"工作量在这里消耗）
+                job = JobMaker.MakeJob(JobDefOf.FinishFrame, t);
+            }
 
-            // 创建一个新 Job，使用原版 FinishFrame JobDef（JobDefOf.FinishFrame）
-            // 参数1: JobDef
-            // 参数2: 工作目标 (targetA = 建造框架本身)
-            Job job = JobMaker.MakeJob(JobDefOf.FinishFrame, t);
-
-            // 允许此工作被玩家强制执行时使用 (allowOpportunistic = 顺手做)
+            // 允许此工作被玩家强制执行时使用
             job.expiryInterval = 2000;       // 2000 tick (≈33秒) 后过期
             job.checkOverrideOnExpire = false;
 
