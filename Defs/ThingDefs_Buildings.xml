@@ -32,6 +32,9 @@
     <!-- 此处放在 Structure (结构) 分类下，与原版墙体/屋顶建造菜单同类 -->
     <designationCategory>Structure</designationCategory>
 
+    <!-- 拖拽框选：使用 Fill2D 样式，支持 FilledRectangle（矩形框选）与 FilledOval（椭圆框选） -->
+    <drawStyleCategory>Fill2D</drawStyleCategory>
+
     <statBases>
       <MaxHitPoints>50</MaxHitPoints>          <!-- 耐久度（标记很脆弱） -->
       <!--
@@ -62,21 +65,18 @@
     <!-- 是否可旋转。这里 1x1 不需要旋转 -->
     <rotatable>false</rotatable>
 
-    <!-- 贴图。暂时复用原版 Sandbag 贴图作为占位（建议后续替换为自定义贴图） -->
+    <!-- 贴图：使用本模组自带的占位贴图（标记建筑完成后立即销毁，仅建造期间显示）。 -->
     <graphicData>
-      <texPath>Things/Building/Linked/Sandbag</texPath>
+      <texPath>Buildings/ThickRoofBuilder</texPath>
       <graphicClass>Graphic_Single</graphicClass>
       <shaderType>CutoutComplex</shaderType>
       <drawSize>(0.5,0.5)</drawSize>
     </graphicData>
 
-    <!-- 蓝图阶段的贴图（建筑未完成时显示的灰色半透明轮廓） -->
-    <blueprintGraphicData>
-      <texPath>Things/Building/Linked/Sandbag</texPath>
-    </blueprintGraphicData>
+    <!-- 1.6 起 blueprintGraphicData 字段已移除，蓝图外观自动由 graphicData 派生，不再单独声明 -->
 
     <!-- uiIconPath: 在建筑菜单中显示的图标 -->
-    <uiIconPath>Things/Building/Linked/Sandbag</uiIconPath>
+    <uiIconPath>Buildings/ThickRoofBuilder</uiIconPath>
 
     <!--
       ThingComp: 自定义组件
