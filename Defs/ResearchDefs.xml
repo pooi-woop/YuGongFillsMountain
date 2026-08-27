@@ -15,7 +15,7 @@
     <description>研究如何通过大量挖掘工作将普通地形变为厚岩顶。受"愚公移山"启发。</description>
 
     <!-- 研究所需的工作量（点数）。原版基础科技约 400-1000，高级科技约 4000-10000 -->
-    <baseCost>2000</baseCost>
+    <baseCost>200</baseCost>
 
     <!-- 研究所需的科技等级: Neolithic / Medieval / Industrial / Spacer / Ultra -->
     <techLevel>Industrial</techLevel>
