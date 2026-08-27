@@ -88,12 +88,13 @@ namespace YGFM
             // 可选：在调试日志中确认
             Log.Message($"[愚公填山] 已在 {cell} 设置厚岩顶。");
 
-            // 完成后销毁标记本身（如果 XML 中配了 destroySelfOnComplete=true）
-            if (Props.destroySelfOnComplete)
-            {
-                // DestroyMode.Vanish 表示"消失"，不留建筑残骸；其他选项有 Kill、FailSmaller 等
-                parent.Destroy(DestroyMode.Vanish);
-            }
+            // 注意：这里【不能】同步 destroy 自身！
+            // 原版 Building.SpawnSetup 在跑完 ThingWithComps.SpawnSetup（内部会调用本 comp 的
+            // PostSpawnSetup）后，紧接着执行 base.Map.listerBuildings.Add(this)。
+            // 若在此销毁，thing.Map 会变成 null，原版那一行 ldfld 就会抛 NullReferenceException
+            // （表现为每放置/建造一个标记就爆一次 "Root level exception in OnGUI()"）。
+            // 销毁已交由 Patch_BuildingSpawnSetup_MarkerDestroy（Building.SpawnSetup 的
+            // Harmony Postfix）在 spawn 流程完整结束后再执行。
         }
     }
 }
