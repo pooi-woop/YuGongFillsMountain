@@ -105,6 +105,11 @@ namespace YGFM
             if (!(t is Blueprint || t is Frame)) return false;
             if (!IsOurMarker(t)) return false;
 
+            // 防御：目标已被销毁/未生成时（例如标记完成后 terrain 变化、帧被移除），
+            // 直接返回 false，避免后续 CanReach/Reserve 对缺失对象解引用抛 NRE。
+            if (!t.Spawned) return false;
+            if (t.Map == null) return false;
+
             // 已禁止的目标不能自动工作（除非玩家强制 forced）
             if (t.IsForbidden(pawn) && !forced) return false;
 
@@ -113,6 +118,13 @@ namespace YGFM
 
             // 检查是否已被他人预订（避免多个殖民者抢同一个工作）
             if (!pawn.CanReserve(t, 1, -1, null, forced)) return false;
+
+            // 节流：非强制（自动安排）时限制同一 tick 内的领作业数，抑制任务风暴。
+            // 注意：此判断必须放在 HasJobOnThing（CanGiveJob）里而非 JobOnThing 中——
+            // RimWorld 约定 CanGiveJob 返回 true 时 JobOnThing 必须给出有效 Job，
+            // 若在 JobOnThing 返回 null 会触发 "provided target but yielded no actual job"
+            // 同步校验报错并使小人发呆。放在这里返回 false 只是"暂无可做"，不会报警。
+            if (!forced && !JobThrottle.TryAllow(pawn)) return false;
 
             return true;
         }
@@ -125,25 +137,21 @@ namespace YGFM
         /// </summary>
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
-            // 再次检查（防御性编程）
-            if (!HasJobOnThing(pawn, t, forced)) return null;
+            // 不要在此复查 HasJobOnThing 并返回 null！
+            // RimWorld 的 JobGiver_Work 提交候选后会调用本方法，一旦返回 null 就触发
+            // "provided target but yielded no actual job" 的 Log.ErrorOnce（无害但刷屏）——
+            // 常见于多个小人抢同一框架、批量框选导致地形连续变化，目标在两次调用间被销毁/被预订。
+            // 这里对我们的标记恒定生成 Job；若目标确实已销毁，会在 JobDriver 内部干净地结束，不报错。
+            if (t == null) return null;
+            if (!(t is Blueprint || t is Frame)) return null;
+            if (!IsOurMarker(t)) return null;
 
-            Job job;
-            if (t is Blueprint)
-            {
-                // 把蓝图转成框架（原版 PlaceNoCostFrame 作业）
-                job = JobMaker.MakeJob(JobDefOf.PlaceNoCostFrame, t);
-            }
-            else
-            {
-                // 完成建造框架（原版 FinishFrame 作业，真正的"填山"工作量在这里消耗）
-                job = JobMaker.MakeJob(JobDefOf.FinishFrame, t);
-            }
+            Job job = t is Blueprint
+                ? JobMaker.MakeJob(JobDefOf.PlaceNoCostFrame, t)   // 把蓝图转成框架
+                : JobMaker.MakeJob(JobDefOf.FinishFrame, t);       // 完成建造框架（真正的"填山"工作量在此消耗）
 
-            // 允许此工作被玩家强制执行时使用
-            job.expiryInterval = 2000;       // 2000 tick (≈33秒) 后过期
+            job.expiryInterval = 2000;
             job.checkOverrideOnExpire = false;
-
             return job;
         }
 
