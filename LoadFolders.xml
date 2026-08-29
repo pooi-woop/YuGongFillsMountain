@@ -6,5 +6,7 @@
   默认加载根目录下的 Defs/、Textures/、Assemblies/ 等。
 -->
 <loadFolders>
-  <li IfModActive="brrainz.harmony">/</li>
+  <v1.6>
+    <li IfModActive="brrainz.harmony">/</li>
+  </v1.6>
 </loadFolders>
