@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  愚公填山 - 中文本地化字符串
+  ===========================================
+  RimWorld 自动加载 Languages/ChineseSimplified/Keyed/*.xml 中的字符串。
+  注意: 在 1.5+ 版本中文显示名可直接写在 XML Def 的 label/description 中，
+  本地化文件只是冗余/官方语言切换用。
+-->
+<LanguageData>
+
+  <!-- UI 文本 -->
+  <YGFM.SettingsCategory>愚公填山</YGFM.SettingsCategory>
+  <YGFM.WorkAmountMultiplierLabel>工作量倍率: {0}  (预估 {1} 个游戏日)</YGFM.WorkAmountMultiplierLabel>
+  <YGFM.WorkAmountMultiplierHint>提示: 倍率=1.0 时为标准 2 个游戏日；0.5=1 日；2.0=4 日。</YGFM.WorkAmountMultiplierHint>
+
+</LanguageData>

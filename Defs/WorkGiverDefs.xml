@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  愚公填山 - WorkGiver 定义
+  ===========================================
+
+  WorkGiver 是 RimWorld 工作 AI 的核心，决定"哪个工作类型的殖民者去找什么事做"。
+
+  原版的 "Construction" 工作类型会自动建造所有建筑。但我们需要让殖民者用"挖掘"(Mining)
+  工作类型来建造我们的"厚岩顶建造标记"建筑。所以这里定义一个自定义的 WorkGiver：
+    - workType = Mining          -> 殖民者会在"挖掘"工作列表里看到这个工作
+    - giverClass = YGFM.WorkGiver_FillMountain -> 用 C# 自定义逻辑，只处理我们的建筑
+    - 通过 Harmony patch 让原版 Construction 跳过我们的建筑
+
+  这样殖民者就会在"挖掘"工作标签下完成"厚岩顶建造标记"的建造工作。
+-->
+<Defs>
+
+  <WorkGiverDef>
+    <!-- defName 唯一标识 -->
+    <defName>YGFM_FillMountain</defName>
+
+    <!-- 在工作列表中显示的标签 -->
+    <label>fill mountain</label>
+
+    <!-- C# 自定义 WorkGiver 类（必须包含完整命名空间） -->
+    <giverClass>YGFM.WorkGiver_FillMountain</giverClass>
+
+    <!-- 工作类型。这里设为 Mining，让殖民者用"挖掘"工作类型来完成此工作 -->
+    <workType>Mining</workType>
+
+    <!-- 在该工作类型内的优先级（数字越大优先级越高） -->
+    <priorityInType>100</priorityInType>
+
+    <!-- 殖民者执行此工作时显示的动词（如"挖掘") -->
+    <verb>fill</verb>
+    <!-- 殖民者执行此工作时显示的进行时（如"正在挖掘") -->
+    <gerund>filling</gerund>
+
+    <!-- 必需的身体能力。Manipulation = 操作能力（手臂/手） -->
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+
+    <!-- 是否允许非殖民者（如奴隶/旅人）执行此工作 -->
+    <nonColonistsCanDo>true</nonColonistsCanDo>
+
+    <!-- 此工作是否属于"持续任务"（不会被打断） -->
+    <prioritizeSustains>true</prioritizeSustains>
+  </WorkGiverDef>
+
+</Defs>

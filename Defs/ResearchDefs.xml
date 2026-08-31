@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  愚公填山 - 研究项目定义
+  ===========================================
+
+  定义一个研究前置项目，玩家需要先研究后才能建造"厚岩顶建造标记"。
+  这样既符合游戏平衡（避免一开始就无限生成厚岩顶），也给玩家一个发现此功能的过程。
+-->
+<Defs>
+
+  <ResearchProjectDef>
+    <!-- defName 唯一标识 -->
+    <defName>YGFM_MountainFilling</defName>
+    <label>愚公填山</label>
+    <description>研究如何通过大量挖掘工作将普通地形变为厚岩顶。受"愚公移山"启发。</description>
+
+    <!-- 研究所需的工作量（点数）。原版基础科技约 400-1000，高级科技约 4000-10000 -->
+    <baseCost>200</baseCost>
+
+    <!-- 研究所需的科技等级: Neolithic / Medieval / Industrial / Spacer / Ultra -->
+    <techLevel>Industrial</techLevel>
+
+    <!-- 研究前置：需要先研究过哪些项目。这里依赖原版"Stonecutting"(石工) -->
+    <prerequisites>
+      <li>Stonecutting</li>
+    </prerequisites>
+
+    <!-- 研究完成后解锁哪些建筑/制作物。会自动检测有 researchPrerequisites 指向此项目的 Def -->
+    <!-- 通常无需手动列出，但可以用 requiredModsLeftBlank 等控制 -->
+  </ResearchProjectDef>
+
+</Defs>
